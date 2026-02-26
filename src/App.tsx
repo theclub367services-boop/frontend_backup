@@ -35,7 +35,7 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role?: 
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="https://theclub369.com/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (role && user?.role?.toLowerCase() !== role.toLowerCase()) {
