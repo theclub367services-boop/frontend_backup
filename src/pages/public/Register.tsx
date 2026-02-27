@@ -459,7 +459,7 @@ const SuccessModal: React.FC<{
 // ─── Register ─────────────────────────────────────────────────────────────────
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { register, isLoading: authLoading } = useAuth();
+  const { register, isAuthenticated, user, isLoading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -472,6 +472,17 @@ const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const isRegisteringFlow = useRef(false);
+
+  useEffect(() => {
+    if (isAuthenticated && !registering && !showSuccess && !isRegisteringFlow.current) {
+      if (user?.role?.toUpperCase() === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
+  }, [isAuthenticated, registering, showSuccess, user, navigate]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoUrl = "/images/cloud369.png";
 
@@ -496,6 +507,7 @@ const Register: React.FC = () => {
       e.preventDefault();
       setError(null);
       setRegistering(true);
+      isRegisteringFlow.current = true;
 
       try {
         await register({ ...formData, profilePicture: profilePic });
@@ -508,6 +520,7 @@ const Register: React.FC = () => {
         await new Promise((r) => setTimeout(r, 220));
         setShowSuccess(true);
       } catch {
+        isRegisteringFlow.current = false;
         setRegistering(false);
         setError("Registration failed. Please try again.");
       }

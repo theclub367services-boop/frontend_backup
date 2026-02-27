@@ -49,8 +49,7 @@ instance.interceptors.response.use(
                     return instance(originalRequest);
                 })
                 .catch((refreshError) => {
-                    // Refresh token itself expired, logout the user
-                    window.location.href = '/#/login';
+                    // Refresh token itself expired, authentication check failed
                     return Promise.reject(refreshError);
                 });
         }

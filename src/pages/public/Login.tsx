@@ -18,7 +18,7 @@ const fadeUp = {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, isLoading: authLoading } = useAuth();
+  const { login, isAuthenticated, user, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +28,16 @@ const Login: React.FC = () => {
 
   // Controls the LoadingScreen overlay during sign-in
   const [signingIn, setSigningIn] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && !signingIn) {
+      if (user?.role?.toUpperCase() === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
+  }, [isAuthenticated, signingIn, user, navigate]);
 
   // Mouse-parallax card drift
   const cardRef = useRef<HTMLDivElement>(null);
@@ -262,6 +272,7 @@ const Login: React.FC = () => {
                   </button>
                 </div>
 
+                {/* 
                 <div className="flex justify-end pt-1">
                   <button
                     type="button"
@@ -273,6 +284,7 @@ const Login: React.FC = () => {
                     Forgot Password?
                   </button>
                 </div>
+                */}
               </motion.div>
 
               {/* Submit */}
@@ -340,6 +352,7 @@ const Login: React.FC = () => {
       </div>
 
       {/* Forgot Password Modal */}
+      {/* 
       <AnimatePresence>
         {isForgotModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
@@ -417,6 +430,7 @@ const Login: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+      */}
       <LoadingScreen isLoading={signingIn} label="Signing In" fadeIn showDots />
     </div>
   );

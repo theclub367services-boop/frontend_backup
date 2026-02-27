@@ -159,19 +159,11 @@ const AppRoutes = () => {
           />
           <Route
             path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
+            element={<Login />}
           />
           <Route
             path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
+            element={<Register />}
           />
 
           {/* Password Reset (public, no auth check) */}
