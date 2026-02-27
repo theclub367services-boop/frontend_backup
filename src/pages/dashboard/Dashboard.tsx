@@ -220,7 +220,7 @@ const Overview: React.FC<{
 
       {/* Contact card */}
       <motion.a
-        href="mailto:support@club369.com"
+        href="mailto:theclub369.services@gmail.com"
         variants={fadeUp}
         initial="hidden"
         animate="visible"
@@ -252,7 +252,7 @@ const Overview: React.FC<{
             Contact Admin
           </h5>
           <p className="text-lg font-bold text-white [-webkit-font-smoothing:antialiased]">
-            support@club369.com
+            theclub369.services@gmail.com
           </p>
         </div>
         <div
