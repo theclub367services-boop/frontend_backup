@@ -9,12 +9,11 @@ import {
 } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 
-// ─── Apple-tuned constants ────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 const APPLE_EASE = [0.25, 0.1, 0.25, 1] as const;
 const APPLE_SPRING = { stiffness: 380, damping: 38, mass: 1 };
 const CARD_SPRING = { stiffness: 120, damping: 22, mass: 1 };
 
-// ─── Shared variants ──────────────────────────────────────────────────────────
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
   visible: (delay = 0) => ({
@@ -65,60 +64,7 @@ const FloatingCard: React.FC<{
   );
 };
 
-// ─── InputField ───────────────────────────────────────────────────────────────
-interface InputFieldProps {
-  label: string;
-  type: string;
-  name: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
-  required?: boolean;
-  delay?: number;
-  children?: React.ReactNode;
-}
-const InputField: React.FC<InputFieldProps> = ({
-  label,
-  type,
-  name,
-  value,
-  onChange,
-  placeholder,
-  required,
-  delay = 0,
-  children,
-}) => (
-  <motion.div
-    variants={fadeUp}
-    initial="hidden"
-    animate="visible"
-    custom={delay}
-    className="space-y-1"
-  >
-    <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider [-webkit-font-smoothing:antialiased]">
-      {label}
-    </label>
-    <div className="relative group/input">
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-        className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-xl
-                   py-3 px-4 text-white placeholder:text-white/20
-                   focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40
-                   transition-colors duration-200 [-webkit-font-smoothing:antialiased]"
-      />
-      {children}
-    </div>
-  </motion.div>
-);
-
 // ─── RegisteringOverlay ───────────────────────────────────────────────────────
-// Full-screen loading screen shown while the registration API call is in-flight.
-// Matches LoadingScreen's GPU-compositor techniques (scaleX bar, linear rings).
 const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
   const rawProg = useMotionValue(0);
   const springProg = useSpring(rawProg, {
@@ -135,8 +81,6 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
       setPct(0);
       return;
     }
-    // Stepped progress matching backend phases:
-    // validate → create user → upload profile pic → session issue
     const steps: [number, number][] = [
       [20, 150],
       [42, 240],
@@ -173,11 +117,9 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
             scale: 1.04,
             transition: { duration: 0.5, ease: APPLE_EASE },
           }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center
-                     bg-[#0a0008] overflow-hidden"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0a0008] overflow-hidden"
           style={{ willChange: "opacity, transform" }}
         >
-          {/* Ambient blobs */}
           <div className="absolute inset-0 pointer-events-none" aria-hidden>
             <div
               className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px]"
@@ -202,7 +144,6 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
             />
           </div>
 
-          {/* Rotating rings */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <motion.div
               className="w-[280px] h-[280px] rounded-full border border-primary/10 will-change-transform"
@@ -216,7 +157,6 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
               transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
               style={{ translateZ: 0 } as React.CSSProperties}
             />
-            {/* Orbiting dot */}
             <motion.div
               className="absolute w-[280px] h-[280px] will-change-transform"
               animate={{ rotate: 360 }}
@@ -230,14 +170,12 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
             </motion.div>
           </div>
 
-          {/* Center content */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, ease: APPLE_EASE, delay: 0.08 }}
             className="relative z-10 flex flex-col items-center gap-8"
           >
-            {/* Logo */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -261,7 +199,6 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
               />
             </motion.div>
 
-            {/* Labels */}
             <div className="flex flex-col items-center gap-1">
               <h1 className="text-2xl font-bold tracking-[0.4em] text-white uppercase [-webkit-font-smoothing:antialiased]">
                 CLUB<span className="text-primary">369</span>
@@ -288,7 +225,6 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
               </div>
             </div>
 
-            {/* Progress bar */}
             <div className="w-[200px] flex flex-col items-center gap-2">
               <div className="w-full h-[2px] bg-white/5 rounded-full overflow-hidden">
                 <motion.div
@@ -303,13 +239,10 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
             </div>
           </motion.div>
 
-          {/* Corner accents */}
           <div className="absolute top-6 left-6 w-12 h-12 border-t-2 border-l-2 border-primary/20 rounded-tl-2xl" />
           <div className="absolute top-6 right-6 w-12 h-12 border-t-2 border-r-2 border-primary/20 rounded-tr-2xl" />
           <div className="absolute bottom-6 left-6 w-12 h-12 border-b-2 border-l-2 border-primary/20 rounded-bl-2xl" />
           <div className="absolute bottom-6 right-6 w-12 h-12 border-b-2 border-r-2 border-primary/20 rounded-br-2xl" />
-
-          {/* Watermark */}
           <div
             className="absolute bottom-10 left-1/2 -translate-x-1/2 text-[18vw] font-bold
                           text-white/[0.018] pointer-events-none select-none leading-none"
@@ -323,9 +256,7 @@ const RegisteringOverlay: React.FC<{ visible: boolean }> = ({ visible }) => {
 };
 
 // ─── SuccessModal ─────────────────────────────────────────────────────────────
-// Springs in from y:32 (no scale on the panel = no Metal re-rasterize).
-// The check badge uses a spring-pop scale entrance, then a continuous
-// opacity-only ring pulse (safe compositor property).
+// "Proceed to Login" navigates to /login (requirement #3)
 const SuccessModal: React.FC<{
   visible: boolean;
   userName: string;
@@ -339,8 +270,7 @@ const SuccessModal: React.FC<{
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25, ease: APPLE_EASE }}
-        className="fixed inset-0 z-[9998] flex items-center justify-center px-6
-                   bg-black/70 backdrop-blur-md"
+        className="fixed inset-0 z-[9998] flex items-center justify-center px-6 bg-black/70 backdrop-blur-md"
         style={{ willChange: "opacity" }}
       >
         <motion.div
@@ -363,7 +293,7 @@ const SuccessModal: React.FC<{
             style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
           />
 
-          {/* Success badge */}
+          {/* Badge */}
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -378,7 +308,6 @@ const SuccessModal: React.FC<{
                        flex items-center justify-center will-change-transform"
             style={{ translateZ: 0 } as React.CSSProperties}
           >
-            {/* Pulse ring — opacity + scale, acceptable on one-time entry element */}
             <motion.div
               className="absolute inset-0 rounded-full border border-emerald-500/25 will-change-transform"
               animate={{ opacity: [0.8, 0], scale: [1, 1.6] }}
@@ -400,7 +329,7 @@ const SuccessModal: React.FC<{
             </motion.span>
           </motion.div>
 
-          {/* Text content */}
+          {/* Text */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -418,14 +347,13 @@ const SuccessModal: React.FC<{
               .
             </p>
             <p className="text-xs text-gray-500 [-webkit-font-smoothing:antialiased]">
-              Complete your membership by proceeding to payment.
+              Registration successful. Please sign in to continue.
             </p>
           </motion.div>
 
-          {/* Divider */}
           <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6" />
 
-          {/* CTA button */}
+          {/* CTA → /login (requirement #3) */}
           <motion.button
             onClick={onContinue}
             initial={{ opacity: 0, y: 8 }}
@@ -434,22 +362,145 @@ const SuccessModal: React.FC<{
             whileHover={{ scale: 1.025, y: -2 }}
             whileTap={{ scale: 0.975 }}
             className="relative z-10 w-full bg-white text-black hover:bg-primary hover:text-white
-                       font-bold tracking-widest uppercase rounded-xl py-4
-                       transition-colors duration-200
+                       font-bold tracking-widest uppercase rounded-xl py-4 transition-colors duration-200
                        shadow-lg hover:shadow-[0_0_40px_rgba(175,37,244,0.4)]
                        flex items-center justify-center gap-2
                        will-change-transform [-webkit-font-smoothing:antialiased]"
             style={{ translateZ: 0 } as React.CSSProperties}
           >
-            <span className="material-symbols-outlined text-[18px]">
-              arrow_forward
-            </span>
-            Proceed to Payment
+            <span className="material-symbols-outlined text-[18px]">login</span>
+            Proceed to Login
           </motion.button>
 
-          {/* Corner accents */}
           <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 border-primary/15 rounded-tl-3xl" />
           <div className="absolute bottom-0 right-0 w-10 h-10 border-b-2 border-r-2 border-primary/15 rounded-br-3xl" />
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+// ─── ErrorModal ───────────────────────────────────────────────────────────────
+// Mirrors SuccessModal structure with red palette (requirement #2)
+const ErrorModal: React.FC<{
+  visible: boolean;
+  title?: string;
+  message: string;
+  onClose: () => void;
+}> = ({ visible, title = "Registration Failed", message, onClose }) => (
+  <AnimatePresence>
+    {visible && (
+      <motion.div
+        key="error-modal"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25, ease: APPLE_EASE }}
+        className="fixed inset-0 z-[9998] flex items-center justify-center px-6 bg-black/70 backdrop-blur-md"
+        style={{ willChange: "opacity" }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 16 }}
+          transition={{ duration: 0.38, ease: APPLE_EASE, delay: 0.06 }}
+          className="relative w-full max-w-sm bg-[#161118] border border-white/10
+                     rounded-3xl p-8 shadow-2xl overflow-hidden text-center will-change-transform"
+          style={{ translateZ: 0 } as React.CSSProperties}
+        >
+          {/* Red ambient glow */}
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-[260px] h-[160px]
+                          bg-red-500/12 rounded-full blur-[60px] pointer-events-none"
+            style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+          />
+          <div
+            className="absolute bottom-0 right-0 w-40 h-40 bg-red-900/8 rounded-full blur-3xl pointer-events-none"
+            style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+          />
+
+          {/* Badge */}
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 340,
+              damping: 28,
+              delay: 0.18,
+            }}
+            className="relative z-10 mx-auto mb-6 w-20 h-20 rounded-full
+                       bg-red-500/15 border border-red-500/30
+                       flex items-center justify-center will-change-transform"
+            style={{ translateZ: 0 } as React.CSSProperties}
+          >
+            {/* Pulse ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full border border-red-500/25 will-change-transform"
+              animate={{ opacity: [0.8, 0], scale: [1, 1.55] }}
+              transition={{
+                duration: 1.8,
+                repeat: Infinity,
+                ease: "easeOut",
+                delay: 0.5,
+              }}
+              style={{ translateZ: 0 } as React.CSSProperties}
+            />
+            <motion.span
+              className="material-symbols-outlined text-4xl text-red-400"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: APPLE_EASE, delay: 0.32 }}
+            >
+              error
+            </motion.span>
+          </motion.div>
+
+          {/* Text */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.38, ease: APPLE_EASE, delay: 0.28 }}
+            className="relative z-10 space-y-2 mb-8"
+          >
+            <h2 className="text-2xl font-bold text-white tracking-tight [-webkit-font-smoothing:antialiased]">
+              {title}
+            </h2>
+            <p className="text-sm text-gray-400 leading-relaxed [-webkit-font-smoothing:antialiased]">
+              {message}
+            </p>
+          </motion.div>
+
+          <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6" />
+
+          {/* Two-button row: Try Again (primary) + Back */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.34, ease: APPLE_EASE, delay: 0.38 }}
+            className="relative z-10 flex gap-3"
+          >
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.025, y: -2 }}
+              whileTap={{ scale: 0.975 }}
+              className="flex-1 bg-white text-black hover:bg-primary hover:text-white
+                         font-bold tracking-widest uppercase rounded-xl py-3.5
+                         transition-colors duration-200 shadow-lg
+                         hover:shadow-[0_0_30px_rgba(175,37,244,0.35)]
+                         flex items-center justify-center gap-1.5
+                         will-change-transform [-webkit-font-smoothing:antialiased]"
+              style={{ translateZ: 0 } as React.CSSProperties}
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                refresh
+              </span>
+              Try Again
+            </motion.button>
+          </motion.div>
+
+          <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 border-red-500/15 rounded-tl-3xl" />
+          <div className="absolute bottom-0 right-0 w-10 h-10 border-b-2 border-r-2 border-red-500/15 rounded-br-3xl" />
         </motion.div>
       </motion.div>
     )}
@@ -459,7 +510,7 @@ const SuccessModal: React.FC<{
 // ─── Register ─────────────────────────────────────────────────────────────────
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { register, isAuthenticated, user, isLoading: authLoading } = useAuth();
+  const { register, isLoading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -467,22 +518,15 @@ const Register: React.FC = () => {
     phone: "",
     password: "",
   });
+  // Profile pic is OPTIONAL (requirement #1) — no validation required
   const [profilePic, setProfilePic] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const isRegisteringFlow = useRef(false);
-
-  useEffect(() => {
-    if (isAuthenticated && !registering && !showSuccess && !isRegisteringFlow.current) {
-      if (user?.role?.toUpperCase() === "ADMIN") {
-        navigate("/admin", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
-    }
-  }, [isAuthenticated, registering, showSuccess, user, navigate]);
+  const [errorModal, setErrorModal] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoUrl = "/images/cloud369.png";
 
@@ -502,35 +546,75 @@ const Register: React.FC = () => {
     [],
   );
 
+  // ── Client-side mandatory field check → ErrorModal (requirement #2) ────────
+  const validateForm = (): { title: string; message: string } | null => {
+    const missing: string[] = [];
+    if (!formData.name.trim()) missing.push("Full Name");
+    if (!formData.email.trim()) missing.push("Email Address");
+    if (!formData.phone.trim()) missing.push("Phone Number");
+    if (!formData.password.trim()) missing.push("Password");
+
+    if (missing.length > 0) {
+      return {
+        title: "Missing Required Fields",
+        message: `The following field${missing.length > 1 ? "s are" : " is"} required to create your account: ${missing.join(", ")}.`,
+      };
+    }
+    return null;
+  };
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
+
+      // Client-side validation — show ErrorModal before hitting API
+      const validationError = validateForm();
+      if (validationError) {
+        setErrorModal(validationError);
+        return;
+      }
+
       setRegistering(true);
-      isRegisteringFlow.current = true;
 
       try {
-        await register({ ...formData, profilePicture: profilePic });
+        // Profile pic passed as-is; null means no photo (optional — requirement #1)
+        await register({
+          ...formData,
+          profilePicture: profilePic ?? undefined,
+        });
 
-        // Let progress bar visually settle at ~88% then snap to 100%
         await new Promise((r) => setTimeout(r, 260));
         setRegistering(false);
 
-        // Brief gap for overlay exit animation, then show success modal
         await new Promise((r) => setTimeout(r, 220));
         setShowSuccess(true);
-      } catch {
-        isRegisteringFlow.current = false;
+      } catch (err: any) {
         setRegistering(false);
-        setError("Registration failed. Please try again.");
+
+        // Parse backend error message for the ErrorModal (requirement #2)
+        const raw = err?.response?.data ?? err?.data ?? err;
+        const backendMsg =
+          raw?.detail ||
+          raw?.message ||
+          raw?.errors?.detail ||
+          (typeof raw === "string" ? raw : null);
+
+        setErrorModal({
+          title: "Registration Failed",
+          message:
+            backendMsg ||
+            "Something went wrong. Please check your details and try again.",
+        });
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [formData, profilePic, register],
   );
 
+  // "Proceed to Login" → /login (requirement #3)
   const handleContinue = useCallback(() => {
     setShowSuccess(false);
-    navigate("/payment");
+    navigate("/login");
   }, [navigate]);
 
   return (
@@ -603,31 +687,15 @@ const Register: React.FC = () => {
                 <p className="text-gray-500 text-xs uppercase tracking-widest [-webkit-font-smoothing:antialiased]">
                   Begin your learning journey
                 </p>
-
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.25, ease: APPLE_EASE }}
-                      className="mt-4 px-4 py-2 bg-red-500/10 border border-red-500/20
-                                 rounded-lg text-red-500 text-[10px] font-bold uppercase tracking-widest
-                                 [-webkit-font-smoothing:antialiased]"
-                    >
-                      {error}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.div>
 
-              {/* Avatar upload */}
+              {/* ── Avatar upload — OPTIONAL (requirement #1) ── */}
               <motion.div
                 variants={fadeUp}
                 initial="hidden"
                 animate="visible"
                 custom={0.1}
-                className="flex justify-center mb-8 relative z-10"
+                className="flex flex-col items-center mb-8 relative z-10 gap-2"
               >
                 <motion.div
                   whileHover={{ scale: 1.06, y: -2 }}
@@ -664,6 +732,7 @@ const Register: React.FC = () => {
                       edit
                     </span>
                   </motion.div>
+                  {/* No `required` on this input — it is purely optional */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -672,6 +741,13 @@ const Register: React.FC = () => {
                     accept="image/*"
                   />
                 </motion.div>
+                {/* Optional badge beneath avatar */}
+                <span
+                  className="text-[10px] font-bold tracking-widest uppercase
+                                 text-white/25 [-webkit-font-smoothing:antialiased]"
+                >
+                  Profile photo · optional
+                </span>
               </motion.div>
 
               {/* Form */}
@@ -689,7 +765,7 @@ const Register: React.FC = () => {
                 >
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider [-webkit-font-smoothing:antialiased]">
-                      Full Name
+                      Full Name <span className="text-primary">*</span>
                     </label>
                     <input
                       type="text"
@@ -697,7 +773,6 @@ const Register: React.FC = () => {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="John Doe"
-                      required
                       className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-xl
                                  py-3 px-4 text-white placeholder:text-white/20
                                  focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40
@@ -706,7 +781,7 @@ const Register: React.FC = () => {
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider [-webkit-font-smoothing:antialiased]">
-                      Email Address
+                      Email Address <span className="text-primary">*</span>
                     </label>
                     <input
                       type="email"
@@ -714,7 +789,6 @@ const Register: React.FC = () => {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="john@example.com"
-                      required
                       className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-xl
                                  py-3 px-4 text-white placeholder:text-white/20
                                  focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40
@@ -723,16 +797,29 @@ const Register: React.FC = () => {
                   </div>
                 </motion.div>
 
-                <InputField
-                  label="Phone Number"
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91 99999 99999"
-                  required
-                  delay={0.2}
-                />
+                {/* Phone */}
+                <motion.div
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  custom={0.2}
+                  className="space-y-1"
+                >
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider [-webkit-font-smoothing:antialiased]">
+                    Phone Number <span className="text-primary">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="+91 99999 99999"
+                    className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-xl
+                               py-3 px-4 text-white placeholder:text-white/20
+                               focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40
+                               transition-colors duration-200 [-webkit-font-smoothing:antialiased]"
+                  />
+                </motion.div>
 
                 {/* Password */}
                 <motion.div
@@ -743,7 +830,7 @@ const Register: React.FC = () => {
                   className="space-y-1"
                 >
                   <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider [-webkit-font-smoothing:antialiased]">
-                    Create Password
+                    Create Password <span className="text-primary">*</span>
                   </label>
                   <div className="relative group/input">
                     <span
@@ -759,7 +846,6 @@ const Register: React.FC = () => {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="••••••••"
-                      required
                       className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-xl
                                  py-3.5 pl-12 pr-12 text-white placeholder:text-white/20
                                  focus:border-primary focus:ring-1 focus:ring-primary/40 focus:outline-none
@@ -783,15 +869,16 @@ const Register: React.FC = () => {
                   </div>
                 </motion.div>
 
+                {/* Required fields note */}
                 <motion.p
                   variants={fadeUp}
                   initial="hidden"
                   animate="visible"
                   custom={0.28}
-                  className="text-xs text-gray-500 [-webkit-font-smoothing:antialiased]"
+                  className="text-[10px] text-white/20 tracking-wider [-webkit-font-smoothing:antialiased]"
                 >
-                  Please upload your profile picture to complete registration
-                  without errors.
+                  Fields marked{" "}
+                  <span className="text-primary font-bold">*</span> are required
                 </motion.p>
 
                 {/* Submit */}
@@ -863,14 +950,22 @@ const Register: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Registration loading overlay — covers the API call */}
+      {/* Registration loading overlay */}
       <RegisteringOverlay visible={registering} />
 
-      {/* Success modal — shown after overlay exits */}
+      {/* Success modal → navigates to /login */}
       <SuccessModal
         visible={showSuccess}
         userName={formData.name}
         onContinue={handleContinue}
+      />
+
+      {/* Error modal — validation + API errors (requirement #2) */}
+      <ErrorModal
+        visible={!!errorModal}
+        title={errorModal?.title}
+        message={errorModal?.message ?? ""}
+        onClose={() => setErrorModal(null)}
       />
     </div>
   );
