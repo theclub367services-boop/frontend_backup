@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { AuthService } from "../../services/AuthService";
 
@@ -24,6 +30,16 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
+
+  // Progress for login overlay bar
+  const rawProg = useMotionValue(0);
+  const springProg = useSpring(rawProg, {
+    stiffness: 60,
+    damping: 22,
+    mass: 1,
+  });
+  const barScaleX = useTransform(springProg, [0, 100], [0, 1]);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
@@ -55,8 +71,35 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSigningIn(true);
+    rawProg.set(0);
+
+    // Stepped progress mimicking auth round-trip phases
+    const steps: [number, number][] = [
+      [25, 120],
+      [50, 200],
+      [72, 180],
+      [88, 300],
+    ];
+    let i = 0;
+    const tids: ReturnType<typeof setTimeout>[] = [];
+    const runSteps = () => {
+      if (i >= steps.length) return;
+      const [val, delay] = steps[i++];
+      tids.push(
+        setTimeout(() => {
+          rawProg.set(val);
+          runSteps();
+        }, delay),
+      );
+    };
+    runSteps();
+
     try {
       await login(email, password);
+      rawProg.set(100);
+      // Let bar reach 100% before navigating
+      await new Promise((r) => setTimeout(r, 420));
       const user = AuthService.getCurrentUser();
       if (user?.role?.toLowerCase() === "admin") {
         navigate("/admin");
@@ -66,6 +109,9 @@ const Login: React.FC = () => {
         navigate("/dashboard");
       }
     } catch {
+      tids.forEach(clearTimeout);
+      rawProg.set(0);
+      setSigningIn(false);
       setError("Invalid credentials. Please try again.");
     }
   };
@@ -377,6 +423,130 @@ const Login: React.FC = () => {
               </form>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {signingIn && (
+          <motion.div
+            key="signin-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: APPLE_EASE }}
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center
+                       bg-[#0a0008]/95 backdrop-blur-md overflow-hidden"
+            style={{ willChange: "opacity" }}
+          >
+            {/* Ambient glow */}
+            <div
+              className="absolute top-1/2 left-1/2 w-[500px] h-[500px]
+                         bg-primary/12 rounded-full blur-[130px] pointer-events-none"
+              style={{
+                transform: "translateZ(0) translate(-50%, -50%)",
+                backfaceVisibility: "hidden",
+              }}
+            />
+
+            {/* Rotating rings */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <motion.div
+                className="w-[220px] h-[220px] rounded-full border border-primary/12 will-change-transform"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                style={{ translateZ: 0 } as React.CSSProperties}
+              />
+              <motion.div
+                className="absolute w-[160px] h-[160px] rounded-full border border-primary/8 will-change-transform"
+                animate={{ rotate: -360 }}
+                transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+                style={{ translateZ: 0 } as React.CSSProperties}
+              />
+              {/* Orbiting dot */}
+              <motion.div
+                className="absolute w-[220px] h-[220px] will-change-transform"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }}
+                style={{ translateZ: 0 } as React.CSSProperties}
+              >
+                <div
+                  className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2
+                                w-2 h-2 bg-primary rounded-full
+                                shadow-[0_0_10px_rgba(175,37,244,1)]"
+                />
+              </motion.div>
+            </div>
+
+            {/* Center content */}
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.38, ease: APPLE_EASE, delay: 0.1 }}
+              className="relative z-10 flex flex-col items-center gap-6"
+            >
+              {/* Logo */}
+              <div className="relative">
+                <div
+                  className="absolute inset-0 -m-4 bg-primary/20 rounded-full blur-[30px]"
+                  style={{
+                    transform: "translateZ(0)",
+                    backfaceVisibility: "hidden",
+                  }}
+                />
+                <img
+                  src="/images/cloud369.png"
+                  alt="CLUB369"
+                  className="h-16 w-auto relative z-10
+                             drop-shadow-[0_0_16px_rgba(175,37,244,0.55)]"
+                  loading="eager"
+                  decoding="sync"
+                />
+              </div>
+
+              {/* Label */}
+              <div className="flex flex-col items-center gap-1">
+                <p
+                  className="text-sm font-bold tracking-[0.3em] text-white uppercase
+                               [-webkit-font-smoothing:antialiased]"
+                >
+                  Signing In
+                </p>
+                {/* Animated dots */}
+                <div className="flex gap-1 mt-1">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-1 h-1 bg-primary rounded-full will-change-transform"
+                      animate={{ opacity: [0.2, 1, 0.2], y: [0, -3, 0] }}
+                      transition={{
+                        duration: 0.9,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: i * 0.18,
+                      }}
+                      style={{ translateZ: 0 } as React.CSSProperties}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Spring progress bar */}
+              <div className="w-[180px] flex flex-col items-center gap-2">
+                <div className="w-full h-[2px] bg-white/5 rounded-full overflow-hidden">
+                  <motion.div
+                    style={{ scaleX: barScaleX, originX: 0, translateZ: 0 }}
+                    className="h-full w-full bg-gradient-to-r from-primary via-purple-400 to-primary
+                               will-change-transform shadow-[0_0_8px_rgba(175,37,244,0.8)]"
+                  />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Corner accents */}
+            <div className="absolute top-5 left-5 w-10 h-10 border-t-2 border-l-2 border-primary/20 rounded-tl-xl" />
+            <div className="absolute top-5 right-5 w-10 h-10 border-t-2 border-r-2 border-primary/20 rounded-tr-xl" />
+            <div className="absolute bottom-5 left-5 w-10 h-10 border-b-2 border-l-2 border-primary/20 rounded-bl-xl" />
+            <div className="absolute bottom-5 right-5 w-10 h-10 border-b-2 border-r-2 border-primary/20 rounded-br-xl" />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
