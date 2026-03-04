@@ -185,12 +185,7 @@ const Overview: React.FC<{
               Next Billing
             </div>
             <div className="text-xl font-bold [-webkit-font-smoothing:antialiased]">
-              {details
-                ? new Date(details.nextBillingDate).toLocaleDateString(
-                    "en-US",
-                    { month: "short", day: "numeric" },
-                  )
-                : "N/A"}
+               {details?.nextBillingDate ? new Date(details.nextBillingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}
             </div>
           </div>
         </div>
