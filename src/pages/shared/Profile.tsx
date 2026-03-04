@@ -117,11 +117,11 @@ const Profile: React.FC = () => {
                             </span>
                             {user.role?.toLowerCase() !== 'admin' && (
                                 <span className={`px-3 py-1 ${user.membership_status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} text-[10px] font-bold border rounded-full uppercase tracking-tighter`}>
-                                    {user.membership_status || 'NONE'}
+                                    {user.membership_status || 'INACTIVE'}
                                 </span>
                             )}
                         </div>
-                        <p className="text-gray-500 text-sm mb-4">Member ID: {user.id}</p>
+                        {/* <p className="text-gray-500 text-sm mb-4">Member ID: {user.id}</p> */}
 
                         {!isEditing ? (
                             <motion.button

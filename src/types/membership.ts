@@ -1,4 +1,4 @@
-export type MembershipStatus = 'active' | 'expiring' | 'expired' | 'none';
+export type MembershipStatus = 'active' | 'expiring' | 'expired' | 'inactive';
 export type AutopayStatus = 'active' | 'failed' | 'inactive';
 
 export interface MembershipDetails {

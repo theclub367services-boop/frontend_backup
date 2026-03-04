@@ -56,15 +56,10 @@ const ProtectedRoute = ({
     );
   }
 
-  if (
-    user?.role?.toUpperCase() === "USER" &&
-    user?.status === "PENDING" &&
-    // window.location.hash !== "#/payment"
-    window.location.hash !== "#/dashboard"
-  ) {
-    return <Navigate to="/dashboard" replace />;
-    // return <Navigate to="/payment" replace />;
-  }
+  // Redirect to payment if status is 'PENDING' and not already on payment page
+  // if (user?.role?.toUpperCase() === 'USER' && user?.status === 'PENDING' && window.location.hash !== '#/payment') {
+  //   return <Navigate to="/payment" replace />;
+  // }
 
   return <>{children}</>;
 };

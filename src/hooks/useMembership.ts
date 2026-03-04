@@ -32,7 +32,7 @@ export const useMembership = () => {
 
     const isRenewalAllowed = () => {
         if (!details) return false; // Keep the initial check for details
-        if (details.status === 'EXPIRED' || details.status === 'NONE') return true;
+        if (details.status === 'EXPIRED' || details.status === 'INACTIVE') return true;
 
         const expiry = new Date(details.expiryDate);
         const today = new Date();

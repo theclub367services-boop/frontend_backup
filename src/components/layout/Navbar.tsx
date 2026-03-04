@@ -118,7 +118,7 @@ const Navbar: React.FC = () => {
                     onClick={() => {
                       const user = AuthService.getCurrentUser();
                       if (user?.role?.toLowerCase() === 'user' && user?.status === 'PENDING') {
-                        alert("Dont have access Until u complete payment");
+                        alert("Don't have access Until you complete payment");
                         navigate('/payment');
                       } else {
                         navigate(user?.role?.toLowerCase() === 'admin' ? '/admin/profile' : '/dashboard/profile');

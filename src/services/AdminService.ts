@@ -39,6 +39,10 @@ export const AdminService = {
 
     deleteUser: async (id: string): Promise<any> => {
         return await api.delete(`/admin/users/${id}/delete/`);
+    },
+
+    markAsPaid: async (userId: number): Promise<any> => {
+        return await api.post(`/admin/mark-as-paid/${userId}/`);
     }
 };
 

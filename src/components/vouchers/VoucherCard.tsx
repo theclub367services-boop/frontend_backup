@@ -60,8 +60,8 @@ const VoucherCard: React.FC<VoucherCardProps> = ({ id, title, description, code,
                         onClick={handleClaim}
                         disabled={!isActive || claiming}
                         className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${!isActive
-                                ? 'bg-gray-500/10 text-gray-500 border border-white/5 cursor-not-allowed'
-                                : 'bg-white/5 text-white hover:bg-primary hover:text-white border border-white/10'
+                            ? 'bg-gray-500/10 text-gray-500 border border-white/5 cursor-not-allowed'
+                            : 'bg-white/5 text-white hover:bg-primary hover:text-white border border-white/10'
                             }`}
                     >
                         {!isActive ? 'Membership Required' : (claiming ? 'Claiming...' : 'Claim Reward')}

@@ -8,7 +8,7 @@ export interface User {
     mobile?: string;
     profile_picture?: string;
     status: string;
-    membership_status?: 'ACTIVE' | 'EXPIRED' | 'NONE';
+    membership_status?: 'ACTIVE' | 'EXPIRED' | 'INACTIVE';
     membership_end_date?: string;
     created_at?: string;
 }

@@ -198,11 +198,10 @@ const MemberModal: React.FC<{
                 {label === "Account Status" ? (
                   <span
                     className={`inline-block px-2 py-1 rounded text-xs font-bold border
-                    ${
-                      val === "ACTIVE"
+                    ${val === "ACTIVE"
                         ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                         : "bg-red-500/10 text-red-500 border-red-500/20"
-                    }`}
+                      }`}
                   >
                     {val}
                   </span>
@@ -315,13 +314,12 @@ const VoucherRow: React.FC<{
           <span
             className={`px-2 py-0.5 rounded text-[10px] font-bold
             [-webkit-font-smoothing:antialiased]
-            ${
-              status === "ACTIVE"
+            ${status === "ACTIVE"
                 ? "bg-emerald-500/10 text-emerald-500"
                 : status === "SUSPENDED"
                   ? "bg-amber-500/10 text-amber-500"
                   : "bg-red-500/10 text-red-500"
-            }`}
+              }`}
           >
             {status}
           </span>
@@ -348,10 +346,9 @@ const VoucherRow: React.FC<{
               onClick={() => onToggle(v.id)}
               className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors duration-200
                 [-webkit-font-smoothing:antialiased]
-                ${
-                  v.isSuspended
-                    ? "bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600 hover:text-white"
-                    : "bg-amber-600/10 text-amber-500 hover:bg-amber-600 hover:text-white"
+                ${v.isSuspended
+                  ? "bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600 hover:text-white"
+                  : "bg-amber-600/10 text-amber-500 hover:bg-amber-600 hover:text-white"
                 }`}
             >
               {v.isSuspended ? "Resume" : "Suspend"}
@@ -429,30 +426,27 @@ const Admin: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
-    "ALL" | "ACTIVE" | "EXPIRED" | "NONE"
-  >("ALL");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'ACTIVE' | 'EXPIRED' | 'INACTIVE'>('ALL');
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [isPpHovered, setIsPpHovered] = useState(false);
+
+
   const [members, setMembers] = useState<Member[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [txnSearch, setTxnSearch] = useState("");
+  const [txnSearch, setTxnSearch] = useState('');
   const [sortRecent, setSortRecent] = useState(true);
-  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  // Voucher Management States
   const [vouchers, setVouchers] = useState<AdminVoucher[]>([]);
   const [showVoucherForm, setShowVoucherForm] = useState(false);
-  const [newVoucher, setNewVoucher] = useState({
-    title: "",
-    code: "",
-    expiry: "",
-    description: "",
-  });
-  const [voucherSearch, setVoucherSearch] = useState("");
-  const [voucherFilter, setVoucherFilter] = useState<
-    "all" | "active" | "suspended"
-  >("all");
+  const [newVoucher, setNewVoucher] = useState({ title: '', code: '', expiry: '', description: '' });
+  const [expandedVoucherId, setExpandedVoucherId] = useState<string | null>(null);
+  const [voucherSearch, setVoucherSearch] = useState('');
+  const [voucherStatusFilter, setVoucherStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -492,9 +486,9 @@ const Admin: React.FC = () => {
   const filteredMembers = members.filter((m) => {
     const q = searchTerm.toLowerCase();
     return (
-      (m.name.toLowerCase().includes(q) ||
-        m.email.toLowerCase().includes(q) ||
-        m.phone?.toLowerCase().includes(q)) &&
+      (m.name?.toLowerCase()?.includes(q) ||
+        m.email?.toLowerCase()?.includes(q) ||
+        m.mobile?.toLowerCase()?.includes(q)) &&
       (filterStatus === "ALL" || m.membership_status === filterStatus)
     );
   });
@@ -512,7 +506,7 @@ const Admin: React.FC = () => {
     try {
       await AdminService.deleteUser(id);
       setMembers((prev) => prev.filter((m) => m.id !== id));
-      setShowModal(false);
+      setShowMemberModal(false);
       setSelectedMember(null);
     } catch (e: any) {
       alert(e.message || "Failed to delete user");
@@ -584,6 +578,35 @@ const Admin: React.FC = () => {
       alert("Failed to delete voucher");
     }
   }, []);
+
+const handleMarkAsPaid = async (memberId: string) => {
+    if (window.confirm('Are you sure you want to mark this user as PAID manually? This will create a successful payment record and extend membership.')) {
+            try {
+                await AdminService.markAsPaid(Number(memberId));
+        alert('User successfully marked as PAID.');
+
+        // Refresh the whole page to force UI defaults update across the board as requested.
+        window.location.reload();
+
+        // Refresh members and transactions natively
+        const [membersRes, transactionsRes] = await Promise.all([
+          AdminService.getUsers(),
+          AdminService.getTransactions()
+        ]);
+        setMembers(Array.isArray(membersRes) ? membersRes : []);
+        setTransactions(Array.isArray(transactionsRes) ? transactionsRes : []);
+
+        // Update currently viewed member
+        if (membersRes) {
+          const updated = (membersRes as Member[]).find(m => m.id === memberId);
+          if (updated) setSelectedMember(updated);
+        }
+            } catch (error: any) {
+                console.error("Failed to mark as paid", error);
+        alert(error?.response?.data?.error || error.message || "Failed to mark as paid");
+            }
+        }
+    };
 
   if (isLoading) {
     return (
@@ -744,11 +767,10 @@ const Admin: React.FC = () => {
                       className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold
                                   uppercase tracking-widest transition-colors duration-200
                                   [-webkit-font-smoothing:antialiased]
-                                  ${
-                                    active
-                                      ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                      : "bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white border border-white/5"
-                                  }`}
+                                  ${active
+                          ? "bg-primary text-white shadow-lg shadow-primary/20"
+                          : "bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white border border-white/5"
+                        }`}
                     >
                       <span className="material-symbols-outlined text-[18px]">
                         {item.icon}
@@ -900,12 +922,12 @@ const Admin: React.FC = () => {
                             }
                             className="bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-xs
                                      text-gray-400 outline-none focus:border-primary cursor-pointer
-                                     transition-colors duration-200 [-webkit-font-smoothing:antialiased]"
+                                     transition-colors duration-200 [-webkit-font-smoothing:antialiased] pr-6"
                           >
                             <option value="ALL">All Status</option>
                             <option value="ACTIVE">Active</option>
                             <option value="EXPIRED">Expired</option>
-                            <option value="NONE">None</option>
+                            <option value="INACTIVE">Inactive</option>
                           </select>
                           <input
                             type="text"
@@ -974,11 +996,10 @@ const Admin: React.FC = () => {
                                   <span
                                     className={`px-2 py-0.5 rounded text-[10px] font-bold border
                                   [-webkit-font-smoothing:antialiased]
-                                  ${
-                                    member.membership_status === "ACTIVE"
-                                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                                      : "bg-red-500/10 text-red-500 border-red-500/20"
-                                  }`}
+                                  ${member.membership_status === "ACTIVE"
+                                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                        : "bg-red-500/10 text-red-500 border-red-500/20"
+                                      }`}
                                   >
                                     {member.membership_status.toUpperCase()}
                                   </span>
@@ -987,14 +1008,14 @@ const Admin: React.FC = () => {
                                   <button
                                     onClick={() => {
                                       setSelectedMember(member);
-                                      setShowModal(true);
+                                      setShowMemberModal(true);
                                     }}
                                     className="text-primary hover:text-white font-bold text-[10px]
                                              uppercase underline decoration-primary/30
                                              transition-colors duration-200
                                              [-webkit-font-smoothing:antialiased]"
                                   >
-                                    View File
+                                    View More
                                   </button>
                                 </td>
                               </motion.tr>
@@ -1218,9 +1239,9 @@ const Admin: React.FC = () => {
                               />
                             </div>
                             <select
-                              value={voucherFilter}
+                              value={voucherStatusFilter}
                               onChange={(e) =>
-                                setVoucherFilter(e.target.value as any)
+                                setVoucherStatusFilter(e.target.value as any)
                               }
                               className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs
                                        text-gray-400 outline-none focus:border-primary/50 cursor-pointer
@@ -1389,8 +1410,8 @@ const Admin: React.FC = () => {
                                         .includes(
                                           voucherSearch.toLowerCase(),
                                         )) &&
-                                    (voucherFilter === "all" ||
-                                      s === voucherFilter)
+                                    (voucherStatusFilter === "all" ||
+                                      s === voucherStatusFilter)
                                   );
                                 })
                                 .map((v) => (
@@ -1413,21 +1434,162 @@ const Admin: React.FC = () => {
           </AnimatePresence>
         </div>
 
-        {/* ── Member Modal ── */}
+        {/* Member Details Modal */}
         <AnimatePresence>
-          {showModal && selectedMember && (
-            <MemberModal
-              member={selectedMember}
-              onClose={() => {
-                setShowModal(false);
-                setSelectedMember(null);
-              }}
-              onDelete={handleDeleteUser}
-            />
+          {showMemberModal && selectedMember && (
+            <motion.div
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMemberModal(false)}
+            >
+              <motion.div
+                className="bg-[#161118] border border-white/10 rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-16 h-16 rounded-full border-2 border-primary/20 overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 cursor-pointer relative"
+                      onMouseEnter={() => setIsPpHovered(true)}
+                      onMouseLeave={() => setIsPpHovered(false)}
+                    >
+                      {selectedMember.profile_picture ? (
+                        <img src={getFullUrl(selectedMember.profile_picture) || ''} alt={selectedMember.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="material-symbols-outlined text-3xl text-primary/40">person</span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-1">
+                        {selectedMember.name}
+                      </h3>
+                      <p className="text-sm text-gray-400">
+                        Member Details
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowMemberModal(false)}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Email</p>
+                      <p className="text-sm text-white">{selectedMember.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Mobile Number</p>
+                      <p className="text-sm text-white">{selectedMember.mobile || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Joined</p>
+                      <p className="text-sm text-white">{formatDate(selectedMember.created_at)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Account Status</p>
+                      <span
+                        className={`inline-block px-2 py-1 rounded text-xs font-bold ${selectedMember.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}
+                      >
+                        {selectedMember.status}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Last Payment</p>
+                      <p className="text-sm text-white">{formatDate(selectedMember.last_payment_date)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Next Billing</p>
+                      <p className="text-sm text-white">{formatDate(selectedMember.membership_end_date)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    {/* <button
+                                            onClick={() => handleSendReminder(selectedMember.id)}
+                                            className="flex-1 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/80 transition-all"
+                                        >
+                                            Send Reminder
+                                        </button> */}
+                    {selectedMember.membership_status !== 'ACTIVE' && (
+
+                      <>
+                        {selectedMember.mobile && (
+                          <button
+                            onClick={() => window.location.href = `tel:${selectedMember.mobile}`}
+                            className="flex-1 px-4 py-2 bg-primary/10 border border-primary/20 text-primary text-sm font-bold rounded-lg hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2"
+                          >
+                            <span className="material-symbols-outlined text-lg">call</span>
+                            <span>Call Member</span>
+                          </button>
+                        )}
+                        {selectedMember.status !== 'ACTIVE' && (
+                          <button
+                            onClick={() => handleDeleteUser(selectedMember.id)}
+                            className="flex-1 px-4 py-2 bg-red-600/10 border border-red-600/20 text-red-500 text-sm font-bold rounded-lg hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                          >
+                            <span className="material-symbols-outlined text-lg">delete</span>
+                            <span>Delete User</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleMarkAsPaid(selectedMember.id)}
+                          className="flex-1 px-4 py-2 bg-emerald-600 border border-emerald-500 text-white text-sm font-bold rounded-lg hover:bg-emerald-500 transition-all flex items-center justify-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-lg">payments</span>
+                          <span>Mark as PAID</span>
+                        </button>
+                        {/* <button
+                                                    onClick={() => handleRetryPayment(selectedMember.id)}
+                                                    className="flex-1 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-500 transition-all"
+                                                >
+                                                    Retry Payment
+                                                </button>
+                                                <button
+                                                    onClick={() => handleCancelMembership(selectedMember.id)}
+                                                    className="flex-1 px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-500 transition-all"
+                                                >
+                                                    Cancel Membership
+                                                </button> */}
+                      </>
+
+
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Hover Zoom Popup (Fixed at overlay level to avoid clipping) */}
+              <AnimatePresence>
+                {isPpHovered && selectedMember.profile_picture && (
+                  <motion.div
+                    className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-2xl border-4 border-primary/50 shadow-[0_0_50px_rgba(168,85,247,0.4)] overflow-hidden z-[100] bg-[#161118] pointer-events-none"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                  >
+                    <img
+                      src={getFullUrl(selectedMember.profile_picture) || ''}
+                      alt={selectedMember.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </DashboardLayout>
+    </DashboardLayout >
   );
 };
 

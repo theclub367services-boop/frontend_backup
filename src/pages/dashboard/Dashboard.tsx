@@ -195,28 +195,30 @@ const Overview: React.FC<{
           </div>
         </div>
 
-        <div className="space-y-4 relative z-10">
-          <div className="flex justify-between text-xs font-bold uppercase tracking-tighter">
-            <span className="text-gray-400 [-webkit-font-smoothing:antialiased]">
-              Cycle Progress
-            </span>
-            <span className="text-primary [-webkit-font-smoothing:antialiased]">
-              {daysRemaining} Days Left
-            </span>
-          </div>
-          <div className="mb-6">
-            <ProgressBar percent={progressPercent} />
-          </div>
-          <RenewButton
-            status={details?.status || "none"}
-            expiryDate={details?.expiryDate || ""}
-            amount={4999}
-            email={user?.email || ""}
-            name={user?.name || ""}
-            mobile={user?.mobile || ""}
-          />
-        </div>
-      </motion.div>
+                <div className="space-y-4 relative z-10">
+                    <div className="flex justify-between text-xs font-bold uppercase tracking-tighter">
+                        <span className="text-gray-400">Cycle Progress</span>
+                        <span className="text-primary">{daysRemaining} Days Left</span>
+                    </div>
+                    <div className="h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 mb-6">
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${progressPercent}%` }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            className="h-full bg-gradient-to-r from-primary via-purple-500 to-blue-500"
+                        />
+                    </div>
+
+                    {/* <RenewButton
+                        status={details?.status || 'none'}
+                        expiryDate={details?.expiryDate || ''}
+                        amount={4999}
+                        email={user?.email || ''}
+                        name={user?.name || ''}
+                        mobile={user?.mobile || ''}
+                    /> */}
+                </div>
+            </motion.div>
 
       {/* Contact card */}
       <motion.a
@@ -472,15 +474,20 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const today = new Date();
-  const expiry = details ? new Date(details.expiryDate) : today;
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
-  );
-  const progressPercent = details
-    ? Math.min(100, ((30 - daysRemaining) / 30) * 100)
-    : 0;
+    const today = new Date();
+    const expiry = details ? new Date(details.expiryDate) : today;
+    const daysRemaining = Math.max(0, Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+    const totalCycleDays = 30;
+    const progressPercent = details ? Math.min(100, ((totalCycleDays - daysRemaining) / totalCycleDays) * 100) : 0;
+
+    const isUserInactive = user?.status === 'PENDING' || details?.status === 'INACTIVE';
+
+    const navItems = [
+        { label: 'Overview', path: '/dashboard', icon: 'grid_view' },
+        { label: 'Profile', path: '/dashboard/profile', icon: 'account_circle' },
+        ...(!isUserInactive ? [{ label: 'Vouchers', path: '/dashboard/vouchers', icon: 'confirmation_number' }] : []),
+        { label: 'Payments', path: '/dashboard/payments', icon: 'payments' },
+    ];
 
   return (
     <DashboardLayout>
@@ -621,7 +628,7 @@ const Dashboard: React.FC = () => {
               element={
                 <Vouchers
                   user={user}
-                  membershipStatus={details?.status || "NONE"}
+                  membershipStatus={details?.status || "INACTIVE"}
                   vouchers={vouchers}
                   onClaim={claimVoucher}
                 />
